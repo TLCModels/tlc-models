@@ -1,0 +1,100 @@
+name: CI -- TLC Models
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-typecheck-test:
+    name: Lint, Type Check & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: TypeScript compilation check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  seo-audit:
+    name: SEO & Placeholder Audit
+    runs-on: ubuntu-latest
+    needs: lint-typecheck-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for placeholder IDs
+        run: |
+          echo "Scanning for unresolved placeholder IDs..."
+          FOUND=0
+          for PLACEHOLDER in YOUR_TIDIO_KEY YOUR_META_PIXEL_ID YOUR_FORM_ID YOUR_GA_MEASUREMENT_ID YOUR_GTM_CONTAINER_ID YOUR_CALENDLY_HANDLE; do
+            MATCHES=$(grep -r "$PLACEHOLDER" --include="*.html" --include="*.tsx" --include="*.ts" --include="*.jsx" --include="*.js" . 2>/dev/null || true)
+            if [ -n "$MATCHES" ]; then
+              echo "WARNING: Found $PLACEHOLDER in:"
+              echo "$MATCHES"
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" -eq 1 ]; then
+            echo ""
+            echo "Placeholder IDs detected. These must be replaced before production deployment."
+            echo "See CLAUDE.md for the full list of required credentials."
+          else
+            echo "All placeholder IDs have been replaced. Ready for production."
+          fi
+
+      - name: Verify sitemap.xml exists
+        run: |
+          if [ -f "client/public/sitemap.xml" ]; then
+            echo "sitemap.xml found."
+          else
+            echo "WARNING: sitemap.xml not found in client/public/"
+          fi
+
+      - name: Verify robots.txt exists
+        run: |
+          if [ -f "client/public/robots.txt" ]; then
+            echo "robots.txt found."
+          else
+            echo "WARNING: robots.txt not found in client/public/"
+          fi
+
+      - name: Check image lazy loading
+        run: |
+          echo "Checking for <img> tags missing loading attribute..."
+          MISSING=$(grep -rn '<img ' --include="*.html" --include="*.tsx" --include="*.jsx" . 2>/dev/null | grep -v 'loading=' || true)
+          if [ -n "$MISSING" ]; then
+            echo "WARNING: Images missing loading attribute:"
+            echo "$MISSING"
+          else
+            echo "All images have loading attributes."
+          fi
