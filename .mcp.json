@@ -4,15 +4,15 @@
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-webflow"],
       "env": {
-        "WEBFLOW_API_TOKEN": "PASTE_YOUR_WEBFLOW_API_TOKEN_HERE"
+        "WEBFLOW_API_TOKEN": "${WEBFLOW_API_TOKEN}"
       }
     },
     "cloudflare": {
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-cloudflare"],
       "env": {
-        "CLOUDFLARE_API_TOKEN": "PASTE_YOUR_CLOUDFLARE_API_TOKEN_HERE",
-        "CLOUDFLARE_ACCOUNT_ID": "PASTE_YOUR_CLOUDFLARE_ACCOUNT_ID_HERE"
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
       }
     }
   }
