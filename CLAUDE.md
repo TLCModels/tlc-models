@@ -113,9 +113,9 @@ These placeholders exist across landing pages and must be replaced with real val
 | GA4 (Las Vegas)            | Google Analytics| `G-0T937F6M3H` (LIVE)                           |
 | GA4 (F1 + FIFA)            | Google Analytics| `G-5215213387` (LIVE)                            |
 | Formspree (SEMA)           | Formspree       | `meernvvb` (LIVE)                                |
-| Formspree (F1)             | Formspree       | `FORMSPREE_F1_ID` -- NEEDS REPLACEMENT          |
-| Formspree (Las Vegas)      | Formspree       | `FORMSPREE_LV_ID` -- NEEDS REPLACEMENT          |
-| Formspree (FIFA)           | Formspree       | `FORMSPREE_FIFA_ID` -- NEEDS REPLACEMENT         |
+| Formspree (F1)             | Formspree       | `xreyjrlq` (LIVE)                                |
+| Formspree (Las Vegas)      | Formspree       | `mbdzwpge` (LIVE)                                |
+| Formspree (FIFA)           | Formspree       | `xjgajjjy` (LIVE)                                |
 | Calendly (General)         | Calendly        | `calendly.com/tlcmodels-info/tlc-talent-consultation` (LIVE) |
 | Calendly (F1)              | Calendly        | `calendly.com/tlcmodels-info/f1-staffing-consultation` (LIVE) |
 | Calendly (FIFA)            | Calendly        | `calendly.com/tlcmodels-info/fifa-2026-discovery-call` (LIVE) |
