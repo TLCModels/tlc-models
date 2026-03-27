@@ -30,7 +30,7 @@ DARK="#0A0A0A"
 # Configuration per landing page
 # ---------------------------------------------------------------------------
 TIDIO_KEY="ldaaed9wpuayclkmydwfcomhlqxgfqzz"
-GTM_ID="GTM-XXXXXXX"
+GTM_ID="GTM-NGS336"
 META_PIXEL_ID="YOUR_META_PIXEL_ID"
 CALENDLY_URL="https://calendly.com/tlcmodels/talent-consultation"
 
