@@ -152,22 +152,29 @@ const SocialIcons = {
 /* ------------------------------------------------------------------ */
 /*  CUSTOM HOOKS                                                       */
 /* ------------------------------------------------------------------ */
-function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, boolean] {
-  const ref = useRef<HTMLDivElement | null>(null);
+function useInView(threshold = 0.15): [React.RefCallback<HTMLDivElement>, boolean] {
+  const nodeRef = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
 
+  const setRef: React.RefCallback<HTMLDivElement> = useCallback((node: HTMLDivElement | null) => {
+    nodeRef.current = node;
+  }, []);
+
   useEffect(() => {
-    const node = ref.current;
+    const node = nodeRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect(); } },
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting) { setInView(true); observer.disconnect(); }
+      },
       { threshold }
     );
     observer.observe(node);
     return () => observer.disconnect();
   }, [threshold]);
 
-  return [ref, inView];
+  return [setRef, inView];
 }
 
 function useAnimatedCounter(target: number, duration: number = 2000, start: boolean = false): number {

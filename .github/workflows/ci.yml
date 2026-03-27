@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "Scanning for unresolved placeholder IDs..."
           FOUND=0
-          for PLACEHOLDER in YOUR_TIDIO_KEY YOUR_META_PIXEL_ID YOUR_FORM_ID YOUR_GA_MEASUREMENT_ID YOUR_GTM_CONTAINER_ID YOUR_CALENDLY_HANDLE; do
+          for PLACEHOLDER in YOUR_META_PIXEL_ID YOUR_FORM_ID YOUR_GA_MEASUREMENT_ID YOUR_GTM_CONTAINER_ID YOUR_CALENDLY_HANDLE GTM-XXXXXXX; do
             MATCHES=$(grep -r "$PLACEHOLDER" --include="*.html" --include="*.tsx" --include="*.ts" --include="*.jsx" --include="*.js" . 2>/dev/null || true)
             if [ -n "$MATCHES" ]; then
               echo "WARNING: Found $PLACEHOLDER in:"

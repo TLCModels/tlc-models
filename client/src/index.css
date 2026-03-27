@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-obsidian: #0A0A0A;
+  --color-gold: #C9A84C;
+  --color-gold-light: #D9B88C;
+  --color-glass-bg: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  background-color: var(--color-obsidian);
+  color: #f5f5f5;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
