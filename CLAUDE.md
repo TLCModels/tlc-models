@@ -121,7 +121,7 @@ These placeholders exist across landing pages and must be replaced with real val
 | Calendly (FIFA)            | Calendly        | `calendly.com/tlcmodels-info/fifa-2026-discovery-call` (LIVE) |
 | Calendly (Las Vegas)       | Calendly        | `calendly.com/tlcmodels-info/las-vegas-corporate-staffing` (LIVE) |
 | GTM Container              | Google Tag Manager | `GTM-NGS336` (LIVE)                              |
-| `YOUR_META_PIXEL_ID`      | Meta Business   | NEEDS REPLACEMENT -- create at business.facebook.com |
+| Meta Pixel                 | Meta Business   | `2331056137634152` (LIVE)                         |
 
 ---
 

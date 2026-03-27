@@ -29,7 +29,7 @@
   var CONFIG = {
     tidioKey:      'ldaaed9wpuayclkmydwfcomhlqxgfqzz',
     gtmId:         'GTM-NGS336',           // Replace with your GTM container ID
-    metaPixelId:   'YOUR_META_PIXEL_ID',     // Replace with your Meta Pixel ID
+    metaPixelId:   '2331056137634152',     // Replace with your Meta Pixel ID
     // Page-specific Calendly URLs (auto-detected by hostname)
     calendlySlugs: {
       'f1.tlcmodels.com':       'tlcmodels-info/f1-staffing-consultation',

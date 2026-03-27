@@ -16,7 +16,7 @@
  * Usage:
  *   <script src="/scripts/meta-pixel-events.js"></script>
  *
- * Replace YOUR_META_PIXEL_ID in the base code with your actual Pixel ID.
+ * Replace 2331056137634152 in the base code with your actual Pixel ID.
  */
 
 (function () {

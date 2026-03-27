@@ -31,7 +31,7 @@ DARK="#0A0A0A"
 # ---------------------------------------------------------------------------
 TIDIO_KEY="ldaaed9wpuayclkmydwfcomhlqxgfqzz"
 GTM_ID="GTM-NGS336"
-META_PIXEL_ID="YOUR_META_PIXEL_ID"
+META_PIXEL_ID="2331056137634152"
 CALENDLY_URL="https://calendly.com/tlcmodels/talent-consultation"
 
 # GA4 measurement IDs per page
