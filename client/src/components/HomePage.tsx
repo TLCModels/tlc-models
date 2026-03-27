@@ -1068,7 +1068,7 @@ const LeadForm: React.FC<SectionProps> = () => {
           </div>
         ) : (
           <form
-            action="https://formspree.io/f/YOUR_FORM_ID"
+            action="https://formspree.io/f/mbdzwpge"
             method="POST"
             onSubmit={handleSubmit}
             className="glass rounded-3xl p-8 md:p-12 space-y-6"

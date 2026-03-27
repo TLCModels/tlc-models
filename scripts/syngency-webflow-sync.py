@@ -47,7 +47,7 @@ from tenacity import (
 
 load_dotenv()
 
-SYNGENCY_API_KEY = "aaixegkcwpbeokw63j8uksiagx4opn6megeq"
+SYNGENCY_API_KEY = os.environ.get("SYNGENCY_API_KEY", "")
 SYNGENCY_BASE_URL = "https://tlcmodels.syngency.com"
 
 WEBFLOW_SITE_ID = os.environ.get("WEBFLOW_SITE_ID", "")

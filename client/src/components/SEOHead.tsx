@@ -10,7 +10,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
-const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // TODO: Replace with real GA4 ID
+const GA_MEASUREMENT_ID = 'G-0T937F6M3H';
 
 export default function SEOHead({
   title = 'TLC Models | Elite Talent Staffing for Premium Events',
