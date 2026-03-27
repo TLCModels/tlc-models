@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "webflow": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-webflow"],
+      "env": {
+        "WEBFLOW_API_TOKEN": "PASTE_YOUR_WEBFLOW_API_TOKEN_HERE"
+      }
+    },
+    "cloudflare": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-cloudflare"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "PASTE_YOUR_CLOUDFLARE_API_TOKEN_HERE",
+        "CLOUDFLARE_ACCOUNT_ID": "PASTE_YOUR_CLOUDFLARE_ACCOUNT_ID_HERE"
+      }
+    }
+  }
+}

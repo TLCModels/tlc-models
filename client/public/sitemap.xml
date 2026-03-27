@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://www.tlcmodels.com/</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-hero.webp</image:loc>
+      <image:title>TLC Models -- Elite Talent Staffing for Premium Events</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/las-vegas</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-las-vegas.webp</image:loc>
+      <image:title>TLC Models Las Vegas -- Event Staffing and Promotional Models</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/f1</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-f1.webp</image:loc>
+      <image:title>TLC Models F1 -- Grid Girls and Hospitality Staff for Formula 1</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/fifa</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-fifa.webp</image:loc>
+      <image:title>TLC Models FIFA 2026 -- Event Staff and Brand Ambassadors</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/talent</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/services</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/about</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.tlcmodels.com/contact</loc>
+    <lastmod>2026-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>
