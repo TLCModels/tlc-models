@@ -107,14 +107,21 @@ tlc-models/
 
 These placeholders exist across landing pages and must be replaced with real values:
 
-| Placeholder            | Service         | Where Used            |
-|------------------------|-----------------|-----------------------|
-| `YOUR_TIDIO_KEY`       | Tidio           | Las Vegas page `<head>` |
-| `YOUR_META_PIXEL_ID`   | Meta Business   | Las Vegas page        |
-| `YOUR_FORM_ID`         | Formspree       | All landing pages     |
-| `YOUR_GA_MEASUREMENT_ID` | Google Analytics | All pages           |
-| `YOUR_GTM_CONTAINER_ID`  | Google Tag Manager | All pages          |
-| `YOUR_CALENDLY_HANDLE`   | Calendly       | All landing pages     |
+| Credential / Placeholder   | Service         | Value / Status                                  |
+|----------------------------|-----------------|-------------------------------------------------|
+| Tidio Key                  | Tidio           | `ldaaed9wpuayclkmydwfcomhlqxgfqzz` (LIVE)      |
+| GA4 (Las Vegas)            | Google Analytics| `G-0T937F6M3H` (LIVE)                           |
+| GA4 (F1 + FIFA)            | Google Analytics| `G-5215213387` (LIVE)                            |
+| Formspree (SEMA)           | Formspree       | `meernvvb` (LIVE)                                |
+| Formspree (F1)             | Formspree       | `FORMSPREE_F1_ID` -- NEEDS REPLACEMENT          |
+| Formspree (Las Vegas)      | Formspree       | `FORMSPREE_LV_ID` -- NEEDS REPLACEMENT          |
+| Formspree (FIFA)           | Formspree       | `FORMSPREE_FIFA_ID` -- NEEDS REPLACEMENT         |
+| Calendly (General)         | Calendly        | `calendly.com/tlcmodels-info/tlc-talent-consultation` (LIVE) |
+| Calendly (F1)              | Calendly        | `calendly.com/tlcmodels-info/f1-staffing-consultation` (LIVE) |
+| Calendly (FIFA)            | Calendly        | `calendly.com/tlcmodels-info/fifa-2026-discovery-call` (LIVE) |
+| Calendly (Las Vegas)       | Calendly        | `calendly.com/tlcmodels-info/las-vegas-corporate-staffing` (LIVE) |
+| `GTM-XXXXXXX`             | Google Tag Manager | NEEDS REPLACEMENT -- create at tagmanager.google.com |
+| `YOUR_META_PIXEL_ID`      | Meta Business   | NEEDS REPLACEMENT -- create at business.facebook.com |
 
 ---
 

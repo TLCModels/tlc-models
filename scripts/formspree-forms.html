@@ -1,0 +1,579 @@
+<!--
+  TLC Models - Phase 2: Formspree Lead Capture Forms
+  Three styled forms (Las Vegas, F1, FIFA) with TLC luxury design.
+
+  Replace placeholders before deployment:
+    FORMSPREE_LV_ID   -> Formspree endpoint hash for Las Vegas page
+    FORMSPREE_F1_ID   -> Formspree endpoint hash for F1 page
+    FORMSPREE_FIFA_ID -> Formspree endpoint hash for FIFA page
+
+  Design Tokens:
+    Gold:  #C9A84C
+    Dark:  #0A0A0A
+    Glass: rgba(255,255,255,0.05)
+
+  GA4 Measurement IDs:
+    lasvegas.tlcmodels.com  -> G-0T937F6M3H
+    f1.tlcmodels.com        -> G-5215213387
+    fifa2026.tlcmodels.com  -> G-5215213387
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLC Models - Request a Quote</title>
+
+<style>
+/* =====================================================================
+   TLC MODELS LUXURY FORM STYLES
+   ===================================================================== */
+
+:root {
+  --tlc-gold: #C9A84C;
+  --tlc-gold-hover: #d4b85e;
+  --tlc-dark: #0A0A0A;
+  --tlc-dark-card: #111111;
+  --tlc-glass: rgba(255, 255, 255, 0.05);
+  --tlc-glass-border: rgba(255, 255, 255, 0.08);
+  --tlc-text: #F5F5F5;
+  --tlc-text-muted: #999999;
+  --tlc-radius: 12px;
+  --tlc-input-bg: rgba(255, 255, 255, 0.04);
+  --tlc-input-border: rgba(255, 255, 255, 0.1);
+  --tlc-input-focus: rgba(201, 168, 76, 0.4);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--tlc-dark);
+  color: var(--tlc-text);
+}
+
+/* --- Form Container --- */
+.tlc-form-section {
+  max-width: 680px;
+  margin: 3rem auto;
+  padding: 2.5rem 2rem;
+  background: var(--tlc-glass);
+  border: 1px solid var(--tlc-glass-border);
+  border-radius: var(--tlc-radius);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tlc-form-section h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tlc-gold);
+  letter-spacing: -0.02em;
+}
+
+.tlc-form-section .tlc-subtitle {
+  margin: 0 0 2rem;
+  font-size: 0.95rem;
+  color: var(--tlc-text-muted);
+}
+
+/* --- Form Grid --- */
+.tlc-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.tlc-form .full-width {
+  grid-column: 1 / -1;
+}
+
+/* --- Inputs --- */
+.tlc-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.tlc-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tlc-text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.tlc-field input,
+.tlc-field select,
+.tlc-field textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--tlc-text);
+  background: var(--tlc-input-bg);
+  border: 1px solid var(--tlc-input-border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+}
+
+.tlc-field input::placeholder,
+.tlc-field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.tlc-field input:focus,
+.tlc-field select:focus,
+.tlc-field textarea:focus {
+  border-color: var(--tlc-gold);
+  box-shadow: 0 0 0 3px var(--tlc-input-focus);
+}
+
+.tlc-field select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23C9A84C' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.tlc-field select option {
+  background: var(--tlc-dark-card);
+  color: var(--tlc-text);
+}
+
+.tlc-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* --- Submit Button --- */
+.tlc-submit {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--tlc-dark);
+  background: linear-gradient(135deg, var(--tlc-gold), var(--tlc-gold-hover));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.tlc-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(201, 168, 76, 0.35);
+}
+
+.tlc-submit:active {
+  transform: translateY(0);
+}
+
+/* --- Success Message --- */
+.tlc-success {
+  display: none;
+  text-align: center;
+  padding: 2rem;
+}
+
+.tlc-success.active {
+  display: block;
+}
+
+.tlc-success h3 {
+  font-size: 1.5rem;
+  color: var(--tlc-gold);
+  margin: 0 0 0.5rem;
+}
+
+.tlc-success p {
+  color: var(--tlc-text-muted);
+  margin: 0;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .tlc-form {
+    grid-template-columns: 1fr;
+  }
+  .tlc-form-section {
+    margin: 1.5rem 1rem;
+    padding: 1.75rem 1.25rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     FORM 1: LAS VEGAS LANDING PAGE
+     ===================================================================== -->
+<section class="tlc-form-section" id="form-lasvegas">
+  <h2>Book Premier Las Vegas Talent</h2>
+  <p class="tlc-subtitle">Tell us about your event and we will craft the perfect staffing package.</p>
+
+  <form class="tlc-form"
+        id="tlc-form-lv"
+        action="https://formspree.io/f/FORMSPREE_LV_ID"
+        method="POST"
+        data-form-id="lv-lead"
+        data-form-name="Las Vegas Lead Form"
+        data-ga4-id="G-0T937F6M3H">
+
+    <div class="tlc-field">
+      <label for="lv-name">Full Name *</label>
+      <input type="text" id="lv-name" name="name" placeholder="Jane Doe" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-company">Company</label>
+      <input type="text" id="lv-company" name="company" placeholder="Acme Corp">
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-email">Email *</label>
+      <input type="email" id="lv-email" name="email" placeholder="jane@company.com" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-phone">Phone</label>
+      <input type="tel" id="lv-phone" name="phone" placeholder="+1 (555) 000-0000">
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-event-type">Event Type *</label>
+      <select id="lv-event-type" name="event_type" required>
+        <option value="" disabled selected>Select event type</option>
+        <option value="Corporate">Corporate</option>
+        <option value="Trade Show">Trade Show</option>
+        <option value="Convention">Convention</option>
+        <option value="F1">F1</option>
+        <option value="FIFA">FIFA</option>
+        <option value="Gala">Gala</option>
+        <option value="VIP Hospitality">VIP Hospitality</option>
+        <option value="Brand Activation">Brand Activation</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-event-date">Event Date</label>
+      <input type="date" id="lv-event-date" name="event_date">
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-city">City</label>
+      <input type="text" id="lv-city" name="city" placeholder="Las Vegas">
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-staff">Number of Staff Needed</label>
+      <input type="number" id="lv-staff" name="staff_count" placeholder="10" min="1">
+    </div>
+
+    <div class="tlc-field">
+      <label for="lv-budget">Budget Range</label>
+      <select id="lv-budget" name="budget_range">
+        <option value="" disabled selected>Select budget range</option>
+        <option value="Under $5K">Under $5K</option>
+        <option value="$5K-$15K">$5K-$15K</option>
+        <option value="$15K-$50K">$15K-$50K</option>
+        <option value="$50K-$100K">$50K-$100K</option>
+        <option value="$100K+">$100K+</option>
+      </select>
+    </div>
+
+    <div class="tlc-field full-width">
+      <label for="lv-message">Message</label>
+      <textarea id="lv-message" name="message" placeholder="Tell us about your vision..."></textarea>
+    </div>
+
+    <!-- Hidden field for tracking source -->
+    <input type="hidden" name="_source" value="lasvegas.tlcmodels.com">
+
+    <button type="submit" class="tlc-submit">Request a Quote</button>
+  </form>
+
+  <div class="tlc-success" id="success-lv">
+    <h3>Thank You!</h3>
+    <p>Our team will reach out within 24 hours with a custom talent proposal.</p>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     FORM 2: F1 LANDING PAGE
+     ===================================================================== -->
+<section class="tlc-form-section" id="form-f1">
+  <h2>F1 Event Staffing Inquiry</h2>
+  <p class="tlc-subtitle">Elevate your Formula 1 hospitality with world-class talent.</p>
+
+  <form class="tlc-form"
+        id="tlc-form-f1"
+        action="https://formspree.io/f/FORMSPREE_F1_ID"
+        method="POST"
+        data-form-id="f1-lead"
+        data-form-name="F1 Lead Form"
+        data-ga4-id="G-5215213387">
+
+    <div class="tlc-field">
+      <label for="f1-name">Full Name *</label>
+      <input type="text" id="f1-name" name="name" placeholder="Jane Doe" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-company">Company</label>
+      <input type="text" id="f1-company" name="company" placeholder="Acme Corp">
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-email">Email *</label>
+      <input type="email" id="f1-email" name="email" placeholder="jane@company.com" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-phone">Phone</label>
+      <input type="tel" id="f1-phone" name="phone" placeholder="+1 (555) 000-0000">
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-event-type">Event Type *</label>
+      <select id="f1-event-type" name="event_type" required>
+        <option value="" disabled selected>Select event type</option>
+        <option value="Corporate">Corporate</option>
+        <option value="Trade Show">Trade Show</option>
+        <option value="Convention">Convention</option>
+        <option value="F1" selected>F1</option>
+        <option value="FIFA">FIFA</option>
+        <option value="Gala">Gala</option>
+        <option value="VIP Hospitality">VIP Hospitality</option>
+        <option value="Brand Activation">Brand Activation</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-event-date">Event Date</label>
+      <input type="date" id="f1-event-date" name="event_date">
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-city">City</label>
+      <input type="text" id="f1-city" name="city" placeholder="Las Vegas">
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-staff">Number of Staff Needed</label>
+      <input type="number" id="f1-staff" name="staff_count" placeholder="10" min="1">
+    </div>
+
+    <div class="tlc-field">
+      <label for="f1-budget">Budget Range</label>
+      <select id="f1-budget" name="budget_range">
+        <option value="" disabled selected>Select budget range</option>
+        <option value="Under $5K">Under $5K</option>
+        <option value="$5K-$15K">$5K-$15K</option>
+        <option value="$15K-$50K">$15K-$50K</option>
+        <option value="$50K-$100K">$50K-$100K</option>
+        <option value="$100K+">$100K+</option>
+      </select>
+    </div>
+
+    <div class="tlc-field full-width">
+      <label for="f1-message">Message</label>
+      <textarea id="f1-message" name="message" placeholder="Describe your F1 event needs..."></textarea>
+    </div>
+
+    <input type="hidden" name="_source" value="f1.tlcmodels.com">
+
+    <button type="submit" class="tlc-submit">Request F1 Talent Package</button>
+  </form>
+
+  <div class="tlc-success" id="success-f1">
+    <h3>Thank You!</h3>
+    <p>Our F1 hospitality specialist will contact you within 24 hours.</p>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     FORM 3: FIFA 2026 LANDING PAGE
+     ===================================================================== -->
+<section class="tlc-form-section" id="form-fifa">
+  <h2>FIFA 2026 Staffing Inquiry</h2>
+  <p class="tlc-subtitle">Premium event staffing for the world's biggest stage.</p>
+
+  <form class="tlc-form"
+        id="tlc-form-fifa"
+        action="https://formspree.io/f/FORMSPREE_FIFA_ID"
+        method="POST"
+        data-form-id="fifa-lead"
+        data-form-name="FIFA Lead Form"
+        data-ga4-id="G-5215213387">
+
+    <div class="tlc-field">
+      <label for="fifa-name">Full Name *</label>
+      <input type="text" id="fifa-name" name="name" placeholder="Jane Doe" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-company">Company</label>
+      <input type="text" id="fifa-company" name="company" placeholder="Acme Corp">
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-email">Email *</label>
+      <input type="email" id="fifa-email" name="email" placeholder="jane@company.com" required>
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-phone">Phone</label>
+      <input type="tel" id="fifa-phone" name="phone" placeholder="+1 (555) 000-0000">
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-event-type">Event Type *</label>
+      <select id="fifa-event-type" name="event_type" required>
+        <option value="" disabled selected>Select event type</option>
+        <option value="Corporate">Corporate</option>
+        <option value="Trade Show">Trade Show</option>
+        <option value="Convention">Convention</option>
+        <option value="F1">F1</option>
+        <option value="FIFA" selected>FIFA</option>
+        <option value="Gala">Gala</option>
+        <option value="VIP Hospitality">VIP Hospitality</option>
+        <option value="Brand Activation">Brand Activation</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-event-date">Event Date</label>
+      <input type="date" id="fifa-event-date" name="event_date">
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-city">City</label>
+      <input type="text" id="fifa-city" name="city" placeholder="Host City">
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-staff">Number of Staff Needed</label>
+      <input type="number" id="fifa-staff" name="staff_count" placeholder="20" min="1">
+    </div>
+
+    <div class="tlc-field">
+      <label for="fifa-budget">Budget Range</label>
+      <select id="fifa-budget" name="budget_range">
+        <option value="" disabled selected>Select budget range</option>
+        <option value="Under $5K">Under $5K</option>
+        <option value="$5K-$15K">$5K-$15K</option>
+        <option value="$15K-$50K">$15K-$50K</option>
+        <option value="$50K-$100K">$50K-$100K</option>
+        <option value="$100K+">$100K+</option>
+      </select>
+    </div>
+
+    <div class="tlc-field full-width">
+      <label for="fifa-message">Message</label>
+      <textarea id="fifa-message" name="message" placeholder="Describe your FIFA 2026 event vision..."></textarea>
+    </div>
+
+    <input type="hidden" name="_source" value="fifa2026.tlcmodels.com">
+
+    <button type="submit" class="tlc-submit">Request FIFA Talent Package</button>
+  </form>
+
+  <div class="tlc-success" id="success-fifa">
+    <h3>Thank You!</h3>
+    <p>Our FIFA event specialist will reach out within 24 hours.</p>
+  </div>
+</section>
+
+
+<!-- =====================================================================
+     FORM SUBMISSION HANDLER + GA4 EVENT FIRING
+     ===================================================================== -->
+<script>
+(function () {
+  'use strict';
+
+  /**
+   * Handle Formspree AJAX submission with GA4 generate_lead event.
+   * Falls back to native form POST if fetch is unavailable.
+   */
+  var forms = document.querySelectorAll('.tlc-form');
+
+  forms.forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var formData = new FormData(form);
+      var formId   = form.getAttribute('data-form-id') || form.id;
+      var ga4Id    = form.getAttribute('data-ga4-id');
+      var action   = form.getAttribute('action');
+      var successEl = form.parentElement.querySelector('.tlc-success');
+
+      // Submit via fetch (AJAX)
+      fetch(action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function (response) {
+        if (response.ok) {
+          // Show success message, hide form
+          form.style.display = 'none';
+          if (successEl) successEl.classList.add('active');
+
+          // Fire GA4 generate_lead event
+          if (typeof gtag === 'function') {
+            gtag('event', 'generate_lead', {
+              send_to:        ga4Id,
+              event_category: 'lead_generation',
+              event_label:    formId,
+              form_id:        formId,
+              currency:       'USD',
+              value:          0
+            });
+          }
+
+          // Push to dataLayer for GTM
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event:     'form_submit',
+            form_id:   formId,
+            form_name: form.getAttribute('data-form-name') || formId
+          });
+
+          // Meta Pixel Lead event
+          if (typeof fbq === 'function') {
+            fbq('track', 'Lead', { content_name: formId });
+          }
+
+        } else {
+          alert('Something went wrong. Please try again or contact us directly.');
+        }
+      })
+      .catch(function () {
+        alert('Network error. Please check your connection and try again.');
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
