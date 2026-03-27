@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - DynamoDB Database Stack
+  Table: TLCTalentProfiles
+  STATUS: Table ALREADY EXISTS (created 2026-03-26).
+    - Partition key talent_id (S): EXISTS (NOTE: created as talent_id, not talentId)
+    - Sort key updatedAt (N): MISSING - DynamoDB does not support adding sort keys after creation
+    - GSI on location: MISSING - can be added via update
+    - On-demand billing: EXISTS
+  IMPORTANT: DynamoDB does not allow changing the primary key schema after table
+  creation. The existing table has ONLY talent_id as HASH key with NO sort key.
+  Options:
+    1. Add the GSI only (recommended - minimal disruption)
+    2. Create a NEW table with the full schema and migrate data
+  This template defines the DESIRED state (option 2 - new table with full schema).
+
+Parameters:
+  TableName:
+    Type: String
+    Default: TLCTalentProfiles
+    Description: DynamoDB table name
+
+  # Set to true to create a v2 table with the correct schema
+  CreateV2Table:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: >
+      If true, creates TLCTalentProfilesV2 with sort key.
+      If false, only adds GSI to the existing table.
+
+Conditions:
+  ShouldCreateV2: !Equals [!Ref CreateV2Table, 'true']
+
+Resources:
+  # ---------------------------------------------------------------
+  # EXISTING TABLE - Add GSI only (safe update)
+  # The existing table has: talent_id (S) as HASH, no sort key
+  # This resource imports the existing table and adds the GSI.
+  # ---------------------------------------------------------------
+  TLCTalentProfilesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+
+      # Existing key schema (cannot be changed)
+      AttributeDefinitions:
+        - AttributeName: talent_id
+          AttributeType: S
+        - AttributeName: location
+          AttributeType: S
+        - AttributeName: updatedAt
+          AttributeType: 'N'
+
+      KeySchema:
+        - AttributeName: talent_id
+          KeyType: HASH
+
+      # --- GSI on location (MISSING - will be added) ---
+      GlobalSecondaryIndexes:
+        - IndexName: GSI-Location
+          KeySchema:
+            - AttributeName: location
+              KeyType: HASH
+            - AttributeName: updatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        - IndexName: GSI-UpdatedAt
+          KeySchema:
+            - AttributeName: talent_id
+              KeyType: HASH
+            - AttributeName: updatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      # --- Point-in-Time Recovery ---
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      # --- TTL (optional - for expiring draft profiles) ---
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+        - Key: Environment
+          Value: production
+
+  # ---------------------------------------------------------------
+  # V2 TABLE (optional) - Full desired schema with sort key
+  # Only created if CreateV2Table=true
+  # After migration, the original table can be deprecated.
+  # ---------------------------------------------------------------
+  TLCTalentProfilesV2Table:
+    Type: AWS::DynamoDB::Table
+    Condition: ShouldCreateV2
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub '${TableName}V2'
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: talentId
+          AttributeType: S
+        - AttributeName: updatedAt
+          AttributeType: 'N'
+        - AttributeName: location
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: talentId
+          KeyType: HASH
+        - AttributeName: updatedAt
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+        - IndexName: GSI-Location
+          KeySchema:
+            - AttributeName: location
+              KeyType: HASH
+            - AttributeName: updatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+        - Key: Environment
+          Value: production
+
+Outputs:
+  TableName:
+    Description: DynamoDB table name
+    Value: !Ref TLCTalentProfilesTable
+    Export:
+      Name: TLC-TalentTableName
+
+  TableArn:
+    Description: DynamoDB table ARN
+    Value: !GetAtt TLCTalentProfilesTable.Arn
+    Export:
+      Name: TLC-TalentTableArn
+
+  V2TableName:
+    Condition: ShouldCreateV2
+    Description: DynamoDB v2 table name (with sort key)
+    Value: !Ref TLCTalentProfilesV2Table
+
+  V2TableArn:
+    Condition: ShouldCreateV2
+    Description: DynamoDB v2 table ARN
+    Value: !GetAtt TLCTalentProfilesV2Table.Arn

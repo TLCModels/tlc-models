@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - CloudFront CDN Stack
+  Distribution: E2CYPPTF8LHEO0 (d16ord51ny0id1.cloudfront.net)
+  STATUS: Distribution ALREADY EXISTS (created 2026-03-27).
+    - Origin (tlc-models-media S3): EXISTS
+    - SSL Certificate (ACM): MISSING - using CloudFront default cert
+    - Cache behaviors for images: MISSING - only default behavior
+    - Custom error pages: MISSING
+  This template represents the DESIRED state with enhancements.
+
+Parameters:
+  S3BucketDomainName:
+    Type: String
+    Default: tlc-models-media.s3.us-east-2.amazonaws.com
+    Description: S3 bucket regional domain name
+
+  # NOTE: To use a custom domain + ACM cert, first create the cert
+  # in us-east-1 (required for CloudFront) and provide the ARN here.
+  # Until then, the AcmCertificateArn can be left empty to use
+  # CloudFront's default *.cloudfront.net certificate.
+  AcmCertificateArn:
+    Type: String
+    Default: ''
+    Description: >
+      ACM certificate ARN in us-east-1 for custom domain.
+      Leave empty to use default CloudFront certificate.
+
+  CustomDomainName:
+    Type: String
+    Default: ''
+    Description: Custom domain (e.g., cdn.tlcmodels.com). Leave empty if no custom domain.
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref AcmCertificateArn, '']]
+
+Resources:
+  # ---------------------------------------------------------------
+  # Origin Access Control for S3
+  # ---------------------------------------------------------------
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: TLC-Models-Media-OAC
+        Description: OAC for TLC Models media bucket
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # ---------------------------------------------------------------
+  # CloudFront Cache Policy - Optimized for images
+  # ---------------------------------------------------------------
+  ImageCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: TLC-ImageCachePolicy
+        DefaultTTL: 86400       # 1 day
+        MaxTTL: 31536000        # 1 year
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - Accept
+          QueryStringsConfig:
+            QueryStringBehavior: whitelist
+            QueryStrings:
+              - w
+              - h
+              - q
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+
+  # ---------------------------------------------------------------
+  # CloudFront Distribution
+  # NOTE: Distribution E2CYPPTF8LHEO0 already exists.
+  # To import: aws cloudformation import
+  # ---------------------------------------------------------------
+  TLCDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: TLC Models Media CDN
+        Enabled: true
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+
+        # --- Custom Domain (conditional) ---
+        Aliases: !If
+          - HasCustomDomain
+          - - !Ref CustomDomainName
+          - !Ref 'AWS::NoValue'
+
+        ViewerCertificate: !If
+          - HasCustomDomain
+          - AcmCertificateArn: !Ref AcmCertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+
+        # --- Origins ---
+        Origins:
+          - Id: S3MediaOrigin
+            DomainName: !Ref S3BucketDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOAC.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+
+        # --- Default Cache Behavior ---
+        DefaultCacheBehavior:
+          TargetOriginId: S3MediaOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: !Ref ImageCachePolicy
+          Compress: true
+
+        # --- Additional Cache Behaviors for images ---
+        CacheBehaviors:
+          - PathPattern: '/photos/*'
+            TargetOriginId: S3MediaOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !Ref ImageCachePolicy
+            Compress: true
+
+          - PathPattern: '/headshots/*'
+            TargetOriginId: S3MediaOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !Ref ImageCachePolicy
+            Compress: true
+
+          - PathPattern: '/portfolio/*'
+            TargetOriginId: S3MediaOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !Ref ImageCachePolicy
+            Compress: true
+
+        # --- Custom Error Pages (MISSING - needs to be added) ---
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /errors/404.html
+            ErrorCachingMinTTL: 300
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /errors/404.html
+            ErrorCachingMinTTL: 300
+          - ErrorCode: 500
+            ResponseCode: 500
+            ResponsePagePath: /errors/500.html
+            ErrorCachingMinTTL: 60
+          - ErrorCode: 502
+            ResponseCode: 502
+            ResponsePagePath: /errors/502.html
+            ErrorCachingMinTTL: 10
+          - ErrorCode: 503
+            ResponseCode: 503
+            ResponsePagePath: /errors/503.html
+            ErrorCachingMinTTL: 10
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+        - Key: Environment
+          Value: production
+
+Outputs:
+  DistributionId:
+    Description: CloudFront Distribution ID
+    Value: !Ref TLCDistribution
+    Export:
+      Name: TLC-DistributionId
+
+  DistributionDomainName:
+    Description: CloudFront domain name
+    Value: !GetAtt TLCDistribution.DomainName
+    Export:
+      Name: TLC-CDNDomain

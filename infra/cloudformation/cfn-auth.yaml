@@ -1,0 +1,254 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - Cognito Authentication Stack
+  User Pool: TLCModelsTalentPortal (us-east-2_Zdo6bc0Hq)
+  STATUS: User Pool ALREADY EXISTS (created 2026-03-26).
+    - Email-based sign-in: EXISTS
+    - Password policy (8+ chars, upper, lower, number): EXISTS
+    - App client TLCWebApp (510mcorai1t9qgestj47l2g7ut): EXISTS
+    - Groups (talent, client, administrator): MISSING - will be created
+    - Auto-verify email: EXISTS
+    - MFA: OFF (default)
+
+Parameters:
+  UserPoolName:
+    Type: String
+    Default: TLCModelsTalentPortal
+    Description: Cognito User Pool name
+
+Resources:
+  # ---------------------------------------------------------------
+  # Cognito User Pool
+  # NOTE: Pool us-east-2_Zdo6bc0Hq ALREADY EXISTS. Import or
+  # use this as reference for the desired configuration.
+  # ---------------------------------------------------------------
+  TLCUserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: !Ref UserPoolName
+
+      # --- Sign-in configuration ---
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+      # --- Password Policy (EXISTS) ---
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          TemporaryPasswordValidityDays: 7
+
+      # --- Schema attributes ---
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: given_name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: family_name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: phone_number
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: picture
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+
+      # --- Account recovery ---
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+          - Name: verified_phone_number
+            Priority: 2
+
+      # --- Email configuration ---
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+
+      # --- Admin creation settings ---
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+
+      # --- Verification message ---
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailSubject: 'TLC Models - Verify your email'
+        EmailMessage: >
+          Welcome to TLC Models! Your verification code is {####}.
+          Please enter this code to verify your account.
+
+      UserPoolTags:
+        Project: TLCModels
+        Environment: production
+
+  # ---------------------------------------------------------------
+  # App Client - TLCWebApp
+  # NOTE: Client 510mcorai1t9qgestj47l2g7ut ALREADY EXISTS.
+  # ---------------------------------------------------------------
+  TLCWebAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: TLCWebApp
+      UserPoolId: !Ref TLCUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+      CallbackURLs:
+        - 'https://tlcmodels.com/auth/callback'
+        - 'http://localhost:3000/auth/callback'
+        - 'http://localhost:5173/auth/callback'
+      LogoutURLs:
+        - 'https://tlcmodels.com'
+        - 'http://localhost:3000'
+        - 'http://localhost:5173'
+      AccessTokenValidity: 1       # hours
+      IdTokenValidity: 1           # hours
+      RefreshTokenValidity: 30     # days
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+
+  # ---------------------------------------------------------------
+  # User Pool Domain (for hosted UI)
+  # ---------------------------------------------------------------
+  TLCUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: tlc-models-auth
+      UserPoolId: !Ref TLCUserPool
+
+  # ---------------------------------------------------------------
+  # Groups (MISSING - will be created)
+  # ---------------------------------------------------------------
+  TalentGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: talent
+      UserPoolId: !Ref TLCUserPool
+      Description: Talent/model users who manage their own profiles and portfolios
+      Precedence: 3
+
+  ClientGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: client
+      UserPoolId: !Ref TLCUserPool
+      Description: Client users who book talent for events and campaigns
+      Precedence: 2
+
+  AdministratorGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: administrator
+      UserPoolId: !Ref TLCUserPool
+      Description: Administrator users with full platform access
+      Precedence: 1
+
+  # ---------------------------------------------------------------
+  # Identity Pool (for AWS credential vending to authenticated users)
+  # ---------------------------------------------------------------
+  TLCIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: TLCModelsIdentityPool
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref TLCWebAppClient
+          ProviderName: !GetAtt TLCUserPool.ProviderName
+
+  # --- Authenticated role ---
+  CognitoAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: TLC-Cognito-AuthenticatedRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref TLCIdentityPool
+              ForAnyValue:StringLike:
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: TLCAuthenticatedPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Allow uploading to their own S3 prefix
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                Resource: 'arn:aws:s3:::tlc-models-media/uploads/${cognito-identity.amazonaws.com:sub}/*'
+
+  # --- Role attachment ---
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref TLCIdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthenticatedRole.Arn
+
+Outputs:
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref TLCUserPool
+    Export:
+      Name: TLC-UserPoolId
+
+  UserPoolArn:
+    Description: Cognito User Pool ARN
+    Value: !GetAtt TLCUserPool.Arn
+    Export:
+      Name: TLC-UserPoolArn
+
+  AppClientId:
+    Description: Cognito App Client ID
+    Value: !Ref TLCWebAppClient
+    Export:
+      Name: TLC-AppClientId
+
+  IdentityPoolId:
+    Description: Cognito Identity Pool ID
+    Value: !Ref TLCIdentityPool
+    Export:
+      Name: TLC-IdentityPoolId
+
+  UserPoolDomain:
+    Description: Cognito hosted UI domain
+    Value: !Sub 'https://tlc-models-auth.auth.us-east-2.amazoncognito.com'
+    Export:
+      Name: TLC-AuthDomain

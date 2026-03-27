@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - S3 Storage Stack
+  Bucket: tlc-models-media
+  STATUS: Bucket ALREADY EXISTS (created 2026-03-26).
+    - Lifecycle rule on archive/ prefix -> Glacier after 365 days: EXISTS
+    - Lambda notification on photos/*.webp -> TLCRekognitionTagger: EXISTS
+    - CORS configuration: MISSING - will be applied
+    - Bucket policy for public read on media/: MISSING - will be applied
+  This template represents the DESIRED state. Import the existing bucket
+  or use it as a reference for aws cli updates.
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: tlc-models-media
+    Description: Name of the S3 media bucket
+
+  RekognitionLambdaArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-2:783837107016:function:TLCRekognitionTagger
+    Description: ARN of the Rekognition tagger Lambda function
+
+Resources:
+  # ---------------------------------------------------------------
+  # S3 Bucket - tlc-models-media
+  # NOTE: This bucket already exists. To bring it under CloudFormation
+  # management, use `aws cloudformation import` with the resource
+  # import feature, or treat this template as documentation.
+  # ---------------------------------------------------------------
+  TLCMediaBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+
+      # --- CORS Configuration (MISSING - needs to be applied) ---
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - 'https://tlcmodels.com'
+              - 'https://*.tlcmodels.com'
+              - 'http://localhost:3000'
+              - 'http://localhost:5173'
+            ExposedHeaders:
+              - ETag
+              - x-amz-meta-custom-header
+            MaxAge: 3600
+
+      # --- Lifecycle Rules (EXISTS - Glacier after 365d on archive/) ---
+      LifecycleConfiguration:
+        Rules:
+          - Id: GlacierArchive
+            Status: Enabled
+            Prefix: archive/
+            Transitions:
+              - TransitionInDays: 365
+                StorageClass: GLACIER
+          - Id: AbortIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+          - Id: CleanupTempFiles
+            Status: Enabled
+            Prefix: tmp/
+            ExpirationInDays: 1
+
+      # --- S3 Event Notification (EXISTS - photos/*.webp -> Lambda) ---
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: photos/
+                  - Name: suffix
+                    Value: .webp
+            Function: !Ref RekognitionLambdaArn
+          # Additional trigger for JPEG uploads
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: photos/
+                  - Name: suffix
+                    Value: .jpg
+            Function: !Ref RekognitionLambdaArn
+
+      # --- Versioning ---
+      VersioningConfiguration:
+        Status: Enabled
+
+      # --- Encryption ---
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      # --- Public Access Block (allow public policy for media reads) ---
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+        - Key: Environment
+          Value: production
+
+  # --- Bucket Policy for public read on media paths (MISSING) ---
+  TLCMediaBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TLCMediaBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadMedia
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource:
+              - !Sub 'arn:aws:s3:::${BucketName}/photos/*'
+              - !Sub 'arn:aws:s3:::${BucketName}/headshots/*'
+              - !Sub 'arn:aws:s3:::${BucketName}/portfolio/*'
+          - Sid: CloudFrontOAIAccess
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${BucketName}/*'
+            Condition:
+              StringLike:
+                'aws:Referer':
+                  - 'https://d16ord51ny0id1.cloudfront.net/*'
+
+  # --- Lambda Invoke Permission (required for S3 -> Lambda trigger) ---
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref RekognitionLambdaArn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:s3:::${BucketName}'
+
+Outputs:
+  BucketName:
+    Description: S3 media bucket name
+    Value: !Ref TLCMediaBucket
+    Export:
+      Name: TLC-MediaBucketName
+
+  BucketArn:
+    Description: S3 media bucket ARN
+    Value: !GetAtt TLCMediaBucket.Arn
+    Export:
+      Name: TLC-MediaBucketArn
+
+  BucketDomainName:
+    Description: S3 bucket regional domain name
+    Value: !GetAtt TLCMediaBucket.RegionalDomainName
+    Export:
+      Name: TLC-MediaBucketDomain

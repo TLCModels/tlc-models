@@ -1,0 +1,198 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - Lambda Functions Stack
+  Function: TLCRekognitionTagger
+  STATUS: Lambda function ALREADY EXISTS (created 2026-03-27).
+    - Runtime python3.12: EXISTS
+    - Handler rekognition_tagger.lambda_handler: EXISTS
+    - S3 trigger on photos/*.webp: EXISTS (configured on S3 side)
+    - IAM Role TLCRekognitionLambdaRole: EXISTS
+    - Env TALENT_TABLE=TLCTalentProfiles: EXISTS
+    - Memory 256MB, Timeout 30s: EXISTS
+  This template codifies the existing Lambda and its IAM role for
+  full infrastructure-as-code coverage.
+
+Parameters:
+  TalentTableName:
+    Type: String
+    Default: TLCTalentProfiles
+    Description: DynamoDB talent table name
+
+  TalentTableArn:
+    Type: String
+    Default: arn:aws:dynamodb:us-east-2:783837107016:table/TLCTalentProfiles
+    Description: DynamoDB talent table ARN
+
+  MediaBucketName:
+    Type: String
+    Default: tlc-models-media
+    Description: S3 media bucket name
+
+  LambdaCodeS3Bucket:
+    Type: String
+    Default: tlc-models-media
+    Description: S3 bucket containing Lambda deployment package
+
+  LambdaCodeS3Key:
+    Type: String
+    Default: lambda/rekognition-tagger.zip
+    Description: S3 key for Lambda deployment package
+
+Resources:
+  # ---------------------------------------------------------------
+  # IAM Role for Rekognition Tagger Lambda
+  # NOTE: Role arn:aws:iam::783837107016:role/TLCRekognitionLambdaRole
+  # ALREADY EXISTS. Import or use this as reference.
+  # ---------------------------------------------------------------
+  TLCRekognitionLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: TLCRekognitionLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: TLCRekognitionTaggerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3 read access to media bucket
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:HeadObject'
+                Resource: !Sub 'arn:aws:s3:::${MediaBucketName}/*'
+
+              # Rekognition - detect labels and faces
+              - Effect: Allow
+                Action:
+                  - 'rekognition:DetectLabels'
+                  - 'rekognition:DetectFaces'
+                  - 'rekognition:DetectModerationLabels'
+                  - 'rekognition:RecognizeCelebrities'
+                  - 'rekognition:SearchFacesByImage'
+                  - 'rekognition:IndexFaces'
+                Resource: '*'
+
+              # DynamoDB write access to talent table
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:Query'
+                Resource:
+                  - !Ref TalentTableArn
+                  - !Sub '${TalentTableArn}/index/*'
+
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:us-east-2:*:*'
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+
+  # ---------------------------------------------------------------
+  # Lambda Function - TLCRekognitionTagger
+  # NOTE: Function ALREADY EXISTS. Import or use as reference.
+  # ---------------------------------------------------------------
+  TLCRekognitionTagger:
+    Type: AWS::Lambda::Function
+    DependsOn: TLCRekognitionLambdaRole
+    Properties:
+      FunctionName: TLCRekognitionTagger
+      Description: >
+        Auto-tags uploaded talent photos using AWS Rekognition.
+        Detects labels, faces, and moderation flags, then updates
+        the TLCTalentProfiles DynamoDB table.
+      Runtime: python3.12
+      Handler: rekognition_tagger.lambda_handler
+      Role: !GetAtt TLCRekognitionLambdaRole.Arn
+      MemorySize: 256
+      Timeout: 30
+      Architectures:
+        - x86_64
+
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
+
+      Environment:
+        Variables:
+          TALENT_TABLE: !Ref TalentTableName
+          AWS_REGION_NAME: us-east-2
+
+      # --- Dead Letter Queue for failed invocations ---
+      # DeadLetterConfig:
+      #   TargetArn: !GetAtt RekognitionDLQ.Arn
+
+      Tags:
+        - Key: Project
+          Value: TLCModels
+        - Key: Environment
+          Value: production
+
+  # ---------------------------------------------------------------
+  # Lambda Permission - Allow S3 to invoke
+  # ---------------------------------------------------------------
+  S3InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref TLCRekognitionTagger
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:s3:::${MediaBucketName}'
+
+  # ---------------------------------------------------------------
+  # CloudWatch Log Group (explicit retention)
+  # ---------------------------------------------------------------
+  RekognitionTaggerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/TLCRekognitionTagger
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------
+  # CloudWatch Alarm - Lambda Errors
+  # ---------------------------------------------------------------
+  RekognitionTaggerErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: TLC-RekognitionTagger-Errors
+      AlarmDescription: Alert when Rekognition tagger Lambda has errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TLCRekognitionTagger
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  LambdaFunctionArn:
+    Description: Rekognition Tagger Lambda ARN
+    Value: !GetAtt TLCRekognitionTagger.Arn
+    Export:
+      Name: TLC-RekognitionTaggerArn
+
+  LambdaRoleArn:
+    Description: Lambda execution role ARN
+    Value: !GetAtt TLCRekognitionLambdaRole.Arn
+    Export:
+      Name: TLC-RekognitionRoleArn

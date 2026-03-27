@@ -1,0 +1,238 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  TLC Models - SES Email Stack
+  STATUS:
+    - SES Account sending: ENABLED
+    - Domain identity tlcmodels.com: EXISTS (verified)
+    - Template TLCBookingConfirmation: EXISTS
+    - Template TLCTalentAssignment: EXISTS
+    - Template TLCPostEventFollowup: EXISTS
+  This template codifies the existing SES configuration. Since SES domain
+  identities and templates are not natively supported by CloudFormation
+  as standard resources, we use Custom Resources (Lambda-backed) or
+  document the aws cli commands needed to maintain them.
+
+  NOTE: CloudFormation does not support AWS::SES::EmailIdentity for
+  domain verification natively in all cases. Use the CLI commands
+  documented below, or use the Custom Resource approach.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: tlcmodels.com
+    Description: SES verified domain
+
+Resources:
+  # ---------------------------------------------------------------
+  # SES Email Identity (Domain Verification)
+  # NOTE: tlcmodels.com is ALREADY VERIFIED in SES.
+  # CloudFormation can manage this going forward.
+  # ---------------------------------------------------------------
+  TLCEmailIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref DomainName
+      DkimAttributes:
+        SigningEnabled: true
+      MailFromAttributes:
+        MailFromDomain: !Sub 'mail.${DomainName}'
+        BehaviorOnMxFailure: USE_DEFAULT_VALUE
+      FeedbackAttributes:
+        EmailForwardingEnabled: true
+
+  # ---------------------------------------------------------------
+  # SES Configuration Set
+  # ---------------------------------------------------------------
+  TLCConfigurationSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: TLCModelsConfigSet
+      DeliveryOptions:
+        TlsPolicy: REQUIRE
+      ReputationOptions:
+        ReputationMetricsEnabled: true
+      SendingOptions:
+        SendingEnabled: true
+      TrackingOptions:
+        CustomRedirectDomain: !Ref DomainName
+
+  # ---------------------------------------------------------------
+  # SES Email Templates (ALL 3 ALREADY EXIST)
+  # Defined here for IaC completeness.
+  # ---------------------------------------------------------------
+  BookingConfirmationTemplate:
+    Type: AWS::SES::Template
+    Properties:
+      Template:
+        TemplateName: TLCBookingConfirmation
+        SubjectPart: 'Booking Confirmed - {{eventName}} | TLC Models'
+        HtmlPart: |
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #1a1a2e; padding: 20px; text-align: center;">
+              <h1 style="color: #e94560; margin: 0;">TLC Models</h1>
+            </div>
+            <div style="padding: 20px; background: #ffffff;">
+              <h2 style="color: #1a1a2e;">Booking Confirmed!</h2>
+              <p>Hi {{clientName}},</p>
+              <p>Your booking has been confirmed with the following details:</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Event</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventName}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Date</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventDate}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Location</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventLocation}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Talent Assigned</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{talentCount}} talent</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Booking ID</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{bookingId}}</td></tr>
+              </table>
+              <p>If you have any questions, please contact us at bookings@tlcmodels.com.</p>
+            </div>
+            <div style="background: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+              <p>&copy; {{year}} TLC Models. All rights reserved.</p>
+            </div>
+          </body>
+          </html>
+        TextPart: |
+          Booking Confirmed - {{eventName}}
+
+          Hi {{clientName}},
+
+          Your booking has been confirmed:
+          - Event: {{eventName}}
+          - Date: {{eventDate}}
+          - Location: {{eventLocation}}
+          - Talent: {{talentCount}} assigned
+          - Booking ID: {{bookingId}}
+
+          Questions? Contact bookings@tlcmodels.com
+
+          TLC Models
+
+  TalentAssignmentTemplate:
+    Type: AWS::SES::Template
+    Properties:
+      Template:
+        TemplateName: TLCTalentAssignment
+        SubjectPart: 'New Assignment - {{eventName}} on {{eventDate}} | TLC Models'
+        HtmlPart: |
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #1a1a2e; padding: 20px; text-align: center;">
+              <h1 style="color: #e94560; margin: 0;">TLC Models</h1>
+            </div>
+            <div style="padding: 20px; background: #ffffff;">
+              <h2 style="color: #1a1a2e;">New Assignment!</h2>
+              <p>Hi {{talentName}},</p>
+              <p>You have been assigned to a new event:</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Event</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventName}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Date</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventDate}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Time</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventTime}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Location</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{eventLocation}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Client</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{clientName}}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Dress Code</td><td style="padding: 8px; border-bottom: 1px solid #eee;">{{dressCode}}</td></tr>
+              </table>
+              <p><strong>Special Instructions:</strong> {{specialInstructions}}</p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="{{confirmUrl}}" style="background: #e94560; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px;">Confirm Assignment</a>
+              </p>
+              <p style="font-size: 12px; color: #666;">Please confirm within 24 hours or contact scheduling@tlcmodels.com.</p>
+            </div>
+            <div style="background: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+              <p>&copy; {{year}} TLC Models. All rights reserved.</p>
+            </div>
+          </body>
+          </html>
+        TextPart: |
+          New Assignment - {{eventName}}
+
+          Hi {{talentName}},
+
+          You have been assigned to:
+          - Event: {{eventName}}
+          - Date: {{eventDate}} at {{eventTime}}
+          - Location: {{eventLocation}}
+          - Client: {{clientName}}
+          - Dress Code: {{dressCode}}
+
+          Special Instructions: {{specialInstructions}}
+
+          Confirm at: {{confirmUrl}}
+
+          Please confirm within 24 hours.
+          Contact: scheduling@tlcmodels.com
+
+          TLC Models
+
+  PostEventFollowupTemplate:
+    Type: AWS::SES::Template
+    Properties:
+      Template:
+        TemplateName: TLCPostEventFollowup
+        SubjectPart: 'How was {{eventName}}? Share your feedback | TLC Models'
+        HtmlPart: |
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #1a1a2e; padding: 20px; text-align: center;">
+              <h1 style="color: #e94560; margin: 0;">TLC Models</h1>
+            </div>
+            <div style="padding: 20px; background: #ffffff;">
+              <h2 style="color: #1a1a2e;">Thank You!</h2>
+              <p>Hi {{recipientName}},</p>
+              <p>Thank you for being part of <strong>{{eventName}}</strong> on {{eventDate}}.</p>
+              <p>We would love to hear your feedback about the event and the talent performance.</p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="{{feedbackUrl}}" style="background: #e94560; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px;">Share Feedback</a>
+              </p>
+              <p>Your feedback helps us improve and ensures the best experience for future events.</p>
+              {{#if photoGalleryUrl}}
+              <p><strong>Event Photos:</strong> <a href="{{photoGalleryUrl}}">View Gallery</a></p>
+              {{/if}}
+            </div>
+            <div style="background: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666;">
+              <p>&copy; {{year}} TLC Models. All rights reserved.</p>
+              <p><a href="{{unsubscribeUrl}}" style="color: #666;">Unsubscribe</a></p>
+            </div>
+          </body>
+          </html>
+        TextPart: |
+          Thank You for {{eventName}}!
+
+          Hi {{recipientName}},
+
+          Thank you for being part of {{eventName}} on {{eventDate}}.
+
+          Share your feedback: {{feedbackUrl}}
+
+          Your feedback helps us improve future events.
+
+          TLC Models
+
+Outputs:
+  EmailIdentity:
+    Description: SES verified domain
+    Value: !Ref DomainName
+    Export:
+      Name: TLC-EmailDomain
+
+  ConfigurationSetName:
+    Description: SES Configuration Set name
+    Value: !Ref TLCConfigurationSet
+    Export:
+      Name: TLC-SESConfigSet
+
+  BookingTemplateName:
+    Description: Booking confirmation template
+    Value: TLCBookingConfirmation
+
+  AssignmentTemplateName:
+    Description: Talent assignment template
+    Value: TLCTalentAssignment
+
+  FollowupTemplateName:
+    Description: Post-event followup template
+    Value: TLCPostEventFollowup
