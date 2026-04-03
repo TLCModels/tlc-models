@@ -65,4 +65,35 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- Subdomain Landing Pages -->
+  <url>
+    <loc>https://lasvegas.tlcmodels.com/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-las-vegas-og.webp</image:loc>
+      <image:title>TLC Models Las Vegas Event Staffing -- Trade Show Models and Brand Ambassadors</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://f1.tlcmodels.com/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-f1-og.webp</image:loc>
+      <image:title>TLC Models F1 Event Staffing -- Grid Girls and Paddock Hostesses for Formula 1</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fifa2026.tlcmodels.com/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-fifa-og.webp</image:loc>
+      <image:title>TLC Models FIFA 2026 Event Staffing -- VIP Hostesses and Brand Ambassadors</image:title>
+    </image:image>
+  </url>
 </urlset>

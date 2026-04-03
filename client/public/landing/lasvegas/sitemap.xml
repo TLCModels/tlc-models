@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://lasvegas.tlcmodels.com/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-las-vegas-og.webp</image:loc>
+      <image:title>TLC Models Las Vegas Event Staffing — Trade Show Models and Brand Ambassadors</image:title>
+      <image:caption>Las Vegas premier event staffing agency. Elite trade show models, brand ambassadors, and hospitality staff for SEMA, CES, NAB, G2E, and corporate events at the Las Vegas Convention Center and Venetian Expo.</image:caption>
+    </image:image>
+  </url>
+</urlset>

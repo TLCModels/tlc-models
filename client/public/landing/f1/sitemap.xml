@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://f1.tlcmodels.com/</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://d16ord51ny0id1.cloudfront.net/brand-assets/tlc-models-f1-og.webp</image:loc>
+      <image:title>TLC Models F1 Event Staffing — Grid Girls and Paddock Hostesses for Formula 1</image:title>
+      <image:caption>America's premier Formula 1 event staffing agency. Grid presentations, paddock hospitality, and sponsor activations for Las Vegas GP, Miami GP, and US Grand Prix at COTA.</image:caption>
+    </image:image>
+  </url>
+</urlset>
